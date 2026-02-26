@@ -1,0 +1,64 @@
+:root {
+  --ifm-color-primary: #0f766e;
+  --ifm-color-primary-dark: #0b5f58;
+  --ifm-color-primary-darker: #094f49;
+  --ifm-color-primary-light: #12867d;
+  --ifm-color-primary-lighter: #1a9b91;
+  --ifm-background-color: #f4f7f5;
+  --ifm-font-family-base: "IBM Plex Sans", "Source Sans 3", sans-serif;
+  --ifm-heading-font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+}
+
+.hero-wrap {
+  min-height: calc(100vh - 64px);
+  padding: 4rem 1.25rem;
+  background: radial-gradient(circle at 10% 15%, #cce3dd, transparent 45%),
+    radial-gradient(circle at 90% 70%, #c4d8eb, transparent 40%),
+    linear-gradient(135deg, #f4f7f5 0%, #e8efe9 100%);
+}
+
+.hero-panel {
+  max-width: 880px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.hero-kicker {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #0b5f58;
+}
+
+.hero-panel h1 {
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  line-height: 1.05;
+  margin: 0.4rem 0 1rem;
+}
+
+.hero-panel p {
+  max-width: 65ch;
+  color: #233238;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+}
+
+.cards {
+  max-width: 980px;
+  margin: 2.5rem auto 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.9rem;
+}
+
+.cards article {
+  background: #ffffffc9;
+  border: 1px solid #d9e4df;
+  padding: 1rem;
+  border-radius: 12px;
+}
