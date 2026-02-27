@@ -1,18 +1,20 @@
-# ZSGate Website
+# Websites Monorepo
 
-Official website and documentation for ZSGate.
+Unified monorepo for:
+- `xfa-website` (`xfa.cn`)
+- `zhsjf-website` (`zhsjf.cn`)
+- `aihunt-website` (`aihunt.com`)
+- `zsgate-website`
 
 ## Stack
-- Docusaurus 3
-- TypeScript
+- TanStack Router + TanStack Query + React + TypeScript
+- Vite
+- pnpm + Turborepo
+- Vitest + Playwright
+- Docker (self-hosted)
 
-## Local development
+## Quickstart
 ```bash
-npm install
-npm run start
-```
-
-## Build
-```bash
-npm run build
+pnpm install
+pnpm dev:xfa
 ```

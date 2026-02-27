@@ -1,5 +1,10 @@
 node_modules
-.docusaurus
-build
-.cache
+.pnpm-store
+.turbo
+dist
+coverage
+playwright-report
 .DS_Store
+.env
+.env.*
+!.env.example

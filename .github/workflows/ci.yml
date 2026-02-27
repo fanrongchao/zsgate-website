@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile || pnpm install
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: bash scripts/check-docs-ai.sh
+
+  affected-build:
+    runs-on: ubuntu-latest
+    needs: quality
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile || pnpm install
+      - run: |
+          APPS=$(bash scripts/affected-apps.sh)
+          echo "Affected apps: $APPS"
+          if [ "$APPS" = "[]" ]; then
+            echo "No app changes detected"
+            exit 0
+          fi
+          echo "$APPS" | jq -r '.[]' | while read -r app; do
+            pnpm --filter "$app" build
+          done

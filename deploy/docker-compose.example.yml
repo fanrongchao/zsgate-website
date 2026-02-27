@@ -1,0 +1,21 @@
+services:
+  xfa-website:
+    image: ghcr.io/your-org/xfa-website:${IMAGE_TAG:-latest}
+    restart: always
+    ports:
+      - "8081:80"
+  zhsjf-website:
+    image: ghcr.io/your-org/zhsjf-website:${IMAGE_TAG:-latest}
+    restart: always
+    ports:
+      - "8082:80"
+  aihunt-website:
+    image: ghcr.io/your-org/aihunt-website:${IMAGE_TAG:-latest}
+    restart: always
+    ports:
+      - "8083:80"
+  zsgate-website:
+    image: ghcr.io/your-org/zsgate-website:${IMAGE_TAG:-latest}
+    restart: always
+    ports:
+      - "8084:80"
