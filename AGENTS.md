@@ -17,6 +17,8 @@ Maintain four marketing/documentation websites in one monorepo with a unified Ta
 4. Run:
    - `pnpm check`
    - `pnpm check:docs-ai`
+5. Before any Figma-driven UI or asset work, read `docs/FIGMA_MCP_WORKFLOW.md`.
+6. Treat Figma as the source of truth for design intent only, not for product claims or runtime behavior.
 
 ## 4. Content and Claims Boundaries
 - Do not publish unverifiable feature or compliance claims.

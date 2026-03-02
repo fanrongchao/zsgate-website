@@ -1,38 +1,135 @@
-# Figma MCP Workflow
+# Figma Design Source of Truth and MCP Workflow
 
-This document outlines the unified workflow for interacting with Figma designs across our different AI coding assistants (Gemini, Claude/Cline, and Cursor/Codex).
+This document defines the shared contract for all coding agents that interact with Figma in this monorepo.
 
-## Objective
+Supported agents:
+- Codex
+- Claude Code
+- Gemini CLI
+- OpenCode
 
-Our goal is to treat Figma as the single source of truth for assets, layout dimensions, colors, and typography. By using the Figma MCP (Model Context Protocol), all AI assistants can directly query Figma files and nodes to extract CSS, SVG assets, and structural information, rather than relying on manual exports or disconnected screenshots.
+## Source of Truth Policy
 
-## Architecture
+Figma is the single source of truth for visual design intent.
 
-We use the official `@modelcontextprotocol/server-figma` MCP server. It requires a `FIGMA_ACCESS_TOKEN` to authenticate and fetch data.
+Visual design intent includes:
+- layout
+- spacing
+- sizing
+- typography
+- color usage
+- component composition
+- icon and illustration selection
+- motion intent represented in design
 
-### Unified Configuration
+Figma is not the single source of truth for:
+- business logic
+- API behavior
+- SEO or marketing claims
+- compliance, security, or performance claims
+- accessibility acceptance by itself
+- runtime state handling
 
-We maintain MCP configurations in specific directories for each tool so they can automatically pick up the Figma MCP capabilities:
+Runtime code is the source of truth for implemented behavior.
 
-1. **Cursor (Codex)**: Managed via `.cursor/mcp.json`
-2. **Claude (via Cline in VSCode)**: Managed via `.vscode/cline_mcp_settings.json`
-3. **Claude Desktop**: Can be linked to this project's config by copying the server block into `~/.config/Claude/claude_desktop_config.json`.
-4. **Gemini CLI**: Can be run by exporting the environment variable and providing an MCP config JSON to the CLI runtime.
+Site-specific messaging and content constraints remain in each app's `docs-ai` files, especially `GEMINI_SITE_CONTEXT.md`.
 
-## Usage Guide for AI Agents
+## Agent Workflow Contract
 
-When asked to implement a UI component or extract an asset:
-1. Identify the Figma File URL or File Key from the user's prompt.
-2. Use the Figma MCP tool `get_file_nodes` or `get_file` to fetch the specific design node.
-3. Extract styling properties (colors, typography, dimensions) directly from the node data.
-4. For assets (icons, illustrations), use the `get_image` or `get_image_fill` tools to retrieve the raw image or SVG URLs, download them, and place them into the appropriate `/public` or `/src/assets` directory.
+For any Figma-driven UI or asset task, agents must follow this order:
 
-## Setup Instructions
+1. Read the site's `docs-ai` files first.
+2. Identify the Figma file URL, file key, and target page or node if provided.
+3. Query Figma via MCP instead of relying on screenshots when structure, spacing, or dimensions matter.
+4. Extract only the design information needed for the task.
+5. Map Figma output into existing repo patterns instead of mirroring raw design data blindly.
+6. Validate the result against accessibility, reduced motion, and site context constraints.
+7. Update the relevant `docs-ai` files when the request changes page intent, motion intent, or QA criteria.
 
-To enable the MCP, a Figma Personal Access Token is required.
+## What Agents Must Pull From Figma
 
-1. Go to your Figma account settings.
-2. Under "Personal Access Tokens", click "Generate new token".
-3. Replace `<YOUR_FIGMA_ACCESS_TOKEN>` in `.cursor/mcp.json` and `.vscode/cline_mcp_settings.json` with your actual token.
+- layout structure
+- spacing and sizing
+- color usage
+- typography
+- component hierarchy
+- icon and illustration assets
+- motion intent and timing cues when represented in the design
 
-**Security Warning:** NEVER commit your actual `FIGMA_ACCESS_TOKEN` to source control. The configuration files containing actual tokens should be ignored in `.gitignore`.
+## What Agents Must Not Infer Solely From Figma
+
+- product promises
+- feature availability claims
+- compliance language
+- analytics or SEO copy
+- backend data shape
+- accessibility pass or fail status
+- responsive behavior not clearly specified in design or repo patterns
+
+## Current MCP Standard
+
+All supported coding agents should use the same Figma MCP backend:
+
+- package: `figma-developer-mcp`
+- transport: `stdio`
+- launch command: `npx -y figma-developer-mcp --stdio`
+- auth env var: `FIGMA_API_KEY`
+
+Current config locations:
+
+- Codex: `~/.codex/config.toml`
+- Claude Code: user MCP config managed via `claude mcp ...`
+- Gemini CLI: `~/.gemini/settings.json`
+- OpenCode: project-level `.opencode/opencode.jsonc`
+
+Do not reintroduce `.cursor/mcp.json` or `.vscode/cline_mcp_settings.json` in this repo for shared Figma setup.
+
+Treat IDE-specific Figma config as out of policy for this repo unless explicitly requested later.
+
+## Security Rules
+
+- Never commit live Figma tokens.
+- Store tokens only in ignored local config or user-level config.
+- Prefer local or user-scoped secrets over repo-tracked files.
+- If a token is pasted into chat, migrate it to ignored config immediately and avoid echoing it back.
+- If a token may have been exposed, rotate it in Figma settings.
+
+## Setup and Verification Checklist
+
+1. Verify the MCP config uses `figma-developer-mcp --stdio`.
+2. Verify the auth env key is `FIGMA_API_KEY`.
+3. Verify the agent sees a `figma` MCP server.
+4. Verify access by reading a known file key and confirming the returned file name.
+5. If an agent-specific permission prompt blocks MCP tool use, explicitly allow the Figma MCP tool and retry.
+
+## Failure Handling and Troubleshooting
+
+- `404 Not Found` when using `@modelcontextprotocol/server-figma`
+  Cause: wrong or outdated package name.
+  Fix: switch to `figma-developer-mcp --stdio`.
+
+- `Connection closed` in OpenCode
+  Cause: MCP backend mismatch or failed startup.
+  Fix: use the working backend package and the correct env var.
+
+- Claude Code sees the MCP server but refuses tool execution
+  Cause: MCP tool permission gating.
+  Fix: allow the specific `mcp__figma__...` tool and retry.
+
+- Figma API token works but the agent still cannot read the file
+  Cause: MCP config mismatch or tool permission issue.
+  Fix: verify package, env key, and MCP health separately.
+
+- Screenshot-based implementation drifts from design
+  Cause: the agent skipped a structured Figma query.
+  Fix: fetch Figma data directly before implementation.
+
+## Lessons Learned
+
+- The originally documented MCP package was outdated for this environment.
+- Shared documentation must reflect the real working backend, not an assumed or historical one.
+- Figma should be treated as the source of truth for design intent, not for claims or behavior.
+- Agent configuration health and MCP backend health must be validated separately.
+- A successful Figma API call does not prove the agent MCP setup is correct.
+- Claude Code may require explicit MCP tool permission even when the server is correctly configured.
+- Real validation should use the same Figma file across all agents to confirm parity.
